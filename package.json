@@ -1,0 +1,18 @@
+{
+  "name": "ghostless",
+  "version": "3.0.0",
+  "description": "Ghostless — write without shadows. A writing-analysis suite (AI detection, originality, citations, style forensics, humanizer) powered by the Claude API.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "license": "MIT"
+}

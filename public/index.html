@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ghostless — Write Without Shadows</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;1,6..96,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Josefin+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #fff7fb;
+    --bg-2: #fdeef6;
+    --panel: #ffffff;
+    --panel-2: #fff2f8;
+    --line: rgba(155,93,229,0.18);
+    --line-soft: rgba(255,77,141,0.12);
+    --ink: #3a1530;
+    --ink-mute: #8a5d77;
+    --ink-faint: #c09bb2;
+    --accent: #ff4d8d;
+    --accent-2: #9b5de5;
+    --coral: #ff7a59;
+    --gold: #f5b945;
+    --mint: #00bb94;
+    --danger: #ff4d6d;
+    --warn: #f5a623;
+    --grad: linear-gradient(120deg, #ff4d8d 0%, #9b5de5 100%);
+    --grad-warm: linear-gradient(120deg, #ff7a59, #ff4d8d);
+    --shadow: 0 24px 60px rgba(155,93,229,0.18);
+    --r: 18px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background:
+      radial-gradient(900px 480px at 82% -8%, rgba(255,77,141,0.20), transparent 60%),
+      radial-gradient(820px 460px at 8% 4%, rgba(155,93,229,0.18), transparent 58%),
+      radial-gradient(760px 520px at 52% 110%, rgba(0,187,148,0.14), transparent 55%),
+      radial-gradient(680px 420px at 112% 72%, rgba(245,185,69,0.16), transparent 55%),
+      var(--bg);
+    color: var(--ink);
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 20px;
+    line-height: 1.65;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; opacity: 0.025; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .wrap { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; padding: 30px 20px 80px; }
+
+  header.top { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 26px; }
+  .brand { display: flex; flex-direction: column; gap: 2px; }
+  .logo { font-family: "Bodoni Moda", serif; font-weight: 600; font-size: 48px; letter-spacing: -0.01em; line-height: 1; color: var(--ink); }
+  .logo span { background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+  .tagline { font-family: "Josefin Sans", sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.42em; text-transform: uppercase; color: var(--accent-2); margin-top: 12px; }
+
+  .keybox { display: flex; flex-direction: column; gap: 7px; font-family: "Josefin Sans", sans-serif; min-width: 260px; }
+  .keybox label { font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-mute); }
+  .keyrow { display: flex; gap: 8px; align-items: center; }
+  .keyrow input { flex: 1; background: var(--panel); border: 1px solid var(--line); color: var(--ink); border-radius: 12px; padding: 9px 12px; font-size: 13px; font-family: "Josefin Sans", sans-serif; }
+  .keyrow input:focus { outline: none; border-color: var(--accent); }
+  .keynote { font-family: "Cormorant Garamond", serif; font-style: italic; font-size: 14px; color: var(--ink-faint); }
+
+  nav.tabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; border-bottom: 1px solid var(--line); margin-bottom: 24px; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+  nav.tabs button { flex: 0 0 auto; background: none; border: none; color: var(--ink-mute); font-family: "Josefin Sans", sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; padding: 12px 16px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; transition: color 0.18s, border-color 0.18s; }
+  nav.tabs button:hover { color: var(--accent-2); }
+  nav.tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .panel { display: none; animation: rise 0.35s ease; }
+  .panel.active { display: block; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .lead { font-family: "Bodoni Moda", serif; font-size: 30px; font-weight: 600; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-mute); font-size: 18px; font-style: italic; margin: 0 0 18px; }
+
+  .field { position: relative; margin-bottom: 14px; }
+  textarea, .text-in { width: 100%; min-height: 200px; resize: vertical; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); color: var(--ink); padding: 16px 18px; font-family: "Cormorant Garamond", serif; font-size: 19px; line-height: 1.6; }
+  textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(255,77,141,0.12); }
+  .single-in { min-height: 0; height: auto; }
+  input.line { width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); padding: 13px 16px; font-family: "Josefin Sans", sans-serif; font-size: 15px; }
+  input.line:focus { outline: none; border-color: var(--accent); }
+
+  .drop-hint { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-family: "Josefin Sans", sans-serif; font-size: 12.5px; color: var(--ink-faint); margin: -4px 0 14px; }
+  .filebtn { font-family: "Josefin Sans", sans-serif; font-size: 12.5px; font-weight: 600; background: var(--panel-2); border: 1px solid var(--line); color: var(--accent); padding: 6px 12px; border-radius: 9px; cursor: pointer; }
+  .dragging textarea { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(255,77,141,0.20); }
+  .countbar { display: flex; justify-content: space-between; font-family: "Josefin Sans", sans-serif; font-size: 12px; color: var(--ink-faint); margin-top: 4px; }
+
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 8px; }
+  button.go { font-family: "Josefin Sans", sans-serif; font-weight: 700; font-size: 14.5px; letter-spacing: 0.05em; text-transform: uppercase; background: var(--grad); color: #fff; border: none; border-radius: 13px; padding: 14px 26px; cursor: pointer; box-shadow: 0 10px 26px rgba(255,77,141,0.34); transition: transform 0.12s, box-shadow 0.12s, opacity 0.12s; }
+  button.go:hover { transform: translateY(-1px); box-shadow: 0 14px 30px rgba(155,93,229,0.40); }
+  button.go:disabled { opacity: 0.55; cursor: wait; transform: none; }
+  button.ghost { font-family: "Josefin Sans", sans-serif; font-weight: 600; font-size: 14px; background: transparent; color: var(--ink-mute); border: 1px solid var(--line); border-radius: 13px; padding: 14px 20px; cursor: pointer; }
+  button.ghost:hover { color: var(--accent-2); border-color: var(--accent-2); }
+
+  .result { margin-top: 22px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 24px; box-shadow: var(--shadow); }
+  .empty { color: var(--ink-faint); font-style: italic; font-size: 17px; }
+
+  .verdict { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; margin-bottom: 18px; }
+  .bigscore { font-family: "Bodoni Moda", serif; font-size: 64px; font-weight: 600; line-height: 1; letter-spacing: -0.02em; }
+  .scorelabel { font-family: "Josefin Sans", sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-mute); margin-top: 8px; }
+  .splitbar { flex: 1; min-width: 200px; }
+  .bar { height: 14px; border-radius: 999px; overflow: hidden; display: flex; border: 1px solid var(--line); }
+  .bar .ai { background: var(--grad-warm); }
+  .bar .human { background: linear-gradient(90deg, var(--mint), var(--accent-2)); }
+  .barkey { display: flex; justify-content: space-between; font-family: "Josefin Sans", sans-serif; font-size: 12px; color: var(--ink-mute); margin-top: 8px; }
+
+  .reasoning { color: var(--ink); font-size: 18px; margin: 16px 0; padding-top: 16px; border-top: 1px solid var(--line-soft); }
+  .breakdown-title { font-family: "Josefin Sans", sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent-2); margin: 18px 0 10px; }
+  .sentences { font-size: 18px; line-height: 1.95; }
+  .sentences span { padding: 1px 3px; border-radius: 5px; transition: background 0.2s; }
+
+  .signals { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 4px; }
+  .sig { background: var(--panel-2); border: 1px solid var(--line-soft); border-radius: 13px; padding: 13px 15px; }
+  .sig .n { font-family: "Josefin Sans", sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mute); }
+  .sig .v { font-family: "Bodoni Moda", serif; font-size: 26px; margin-top: 4px; color: var(--accent); }
+
+  .src { border-top: 1px solid var(--line-soft); padding: 14px 0; }
+  .src:first-child { border-top: none; }
+  .src .t { font-family: "Bodoni Moda", serif; font-size: 19px; }
+  .src a { color: var(--accent-2); text-decoration: none; word-break: break-word; font-size: 13.5px; font-family: "Josefin Sans", sans-serif; }
+  .src .meta { color: var(--ink-mute); font-size: 17px; margin-top: 4px; }
+  .pill { display: inline-block; font-family: "Josefin Sans", sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; margin-left: 8px; vertical-align: middle; }
+  .pill.ok { background: rgba(0,187,148,0.16); color: #0a9e7e; }
+  .pill.flag { background: rgba(255,77,109,0.16); color: var(--danger); }
+
+  .cite { background: var(--panel-2); border: 1px solid var(--line-soft); border-radius: 13px; padding: 15px 17px; margin-bottom: 10px; }
+  .cite .apa { font-family: "Cormorant Garamond", serif; font-size: 18px; }
+  .cite .copy { float: right; }
+  .copy { font-family: "Josefin Sans", sans-serif; font-size: 11px; font-weight: 600; background: var(--panel); border: 1px solid var(--line); color: var(--accent); padding: 4px 11px; border-radius: 9px; cursor: pointer; }
+
+  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }
+  @media (max-width: 620px) { .controls { grid-template-columns: 1fr; } }
+  .controls label { display: block; font-family: "Josefin Sans", sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 6px; }
+  select.line { width: 100%; background: var(--panel); border: 1px solid var(--line); color: var(--ink); border-radius: 12px; padding: 11px 14px; font-family: "Josefin Sans", sans-serif; font-size: 14px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-family: "Josefin Sans", sans-serif; font-size: 13px; font-weight: 500; padding: 8px 15px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); color: var(--ink-mute); cursor: pointer; user-select: none; transition: all 0.15s; }
+  .chip.on { background: var(--grad); border-color: transparent; color: #fff; box-shadow: 0 6px 16px rgba(255,77,141,0.30); }
+
+  .hum-out { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r); padding: 20px; min-height: 120px; white-space: pre-wrap; font-size: 19px; line-height: 1.7; margin-top: 14px; }
+  .diff { background: var(--panel-2); border: 1px solid var(--line-soft); border-radius: 13px; padding: 13px 15px; margin-bottom: 10px; }
+  .diff .before { color: var(--danger); text-decoration: line-through; opacity: 0.85; font-size: 16px; }
+  .diff .after { color: #0a9e7e; font-size: 17px; margin-top: 4px; }
+  .diff .why { color: var(--ink-faint); font-size: 13px; font-family: "Josefin Sans", sans-serif; margin-top: 6px; }
+
+  .spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.45); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: -2px; margin-right: 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .err { color: var(--danger); font-family: "Josefin Sans", sans-serif; font-size: 14px; margin-top: 10px; }
+  .progress { font-family: "Josefin Sans", sans-serif; font-size: 14px; color: var(--accent-2); margin-top: 10px; }
+
+  footer.foot { margin-top: 60px; text-align: center; font-family: "Josefin Sans", sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo">Ghost<span>less</span></div>
+      <div class="tagline">Write Without Shadows</div>
+    </div>
+    <div class="keybox">
+      <label for="modelsel">Model</label>
+      <div class="keyrow">
+        <select id="modelsel" class="line" style="font-size:13px;padding:9px 12px;">
+          <option value="">Server default</option>
+          <option value="claude-sonnet-4-6">Claude Sonnet 4.6 — balanced</option>
+          <option value="claude-opus-4-8">Claude Opus 4.8 — best quality</option>
+          <option value="claude-opus-4-7">Claude Opus 4.7</option>
+          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 — fastest</option>
+        </select>
+      </div>
+      <div class="keynote">Your API key is stored on the server, never in the browser.</div>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="active" data-tab="detect">AI Detection</button>
+    <button data-tab="originality">Originality</button>
+    <button data-tab="citations">Citations</button>
+    <button data-tab="style">Style Forensics</button>
+    <button data-tab="humanize">Humanizer</button>
+  </nav>
+
+  <!-- ============ AI DETECTION ============ -->
+  <section class="panel active" id="detect">
+    <h2 class="lead">AI Detection</h2>
+    <p class="sub">A blend of statistical signals and Claude's reading, scored sentence by sentence.</p>
+    <div class="field" data-drop="d-text">
+      <textarea id="d-text" placeholder="Paste the text you want to examine…"></textarea>
+    </div>
+    <div class="drop-hint">
+      <button class="filebtn" data-file="d-text">Upload file</button>
+      <span>or drag &amp; drop · .txt, .docx, .pdf</span>
+    </div>
+    <div class="actions">
+      <button class="go" id="d-run">Analyze</button>
+      <button class="ghost" id="d-clear">Clear</button>
+    </div>
+    <div class="result" id="d-result"></div>
+  </section>
+
+  <!-- ============ ORIGINALITY ============ -->
+  <section class="panel" id="originality">
+    <h2 class="lead">Originality Check</h2>
+    <p class="sub">Searches the open web for matching or closely paraphrased sources.</p>
+    <div class="field" data-drop="o-text">
+      <textarea id="o-text" placeholder="Paste the passage to check for originality…"></textarea>
+    </div>
+    <div class="drop-hint">
+      <button class="filebtn" data-file="o-text">Upload file</button>
+      <span>or drag &amp; drop · .txt, .docx, .pdf</span>
+    </div>
+    <div class="actions">
+      <button class="go" id="o-run">Check originality</button>
+      <button class="ghost" id="o-clear">Clear</button>
+    </div>
+    <div class="result" id="o-result"></div>
+  </section>
+
+  <!-- ============ CITATIONS ============ -->
+  <section class="panel" id="citations">
+    <h2 class="lead">Citation Importer</h2>
+    <p class="sub">Finds peer-reviewed journal articles and formats them in APA 7th edition. Verified before formatting.</p>
+    <div class="field">
+      <input class="line" id="c-query" placeholder="A topic, a partial reference, a title, or a DOI…" />
+    </div>
+    <div class="controls">
+      <div>
+        <label>How many</label>
+        <select class="line" id="c-count">
+          <option value="3">3 sources</option>
+          <option value="5" selected>5 sources</option>
+          <option value="8">8 sources</option>
+        </select>
+      </div>
+      <div>
+        <label>Recency</label>
+        <select class="line" id="c-recency">
+          <option value="any">Any year</option>
+          <option value="10" selected>Last 10 years</option>
+          <option value="5">Last 5 years</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="go" id="c-run">Find &amp; format</button>
+    </div>
+    <div class="result" id="c-result"></div>
+  </section>
+
+  <!-- ============ STYLE FORENSICS ============ -->
+  <section class="panel" id="style">
+    <h2 class="lead">Style Forensics</h2>
+    <p class="sub">Reads for edit-trail residue, register drift, rhythm, and voice breaks — signs text was assembled rather than written.</p>
+    <div class="field" data-drop="s-text">
+      <textarea id="s-text" placeholder="Paste the text to examine for forensic style signals…"></textarea>
+    </div>
+    <div class="drop-hint">
+      <button class="filebtn" data-file="s-text">Upload file</button>
+      <span>or drag &amp; drop · .txt, .docx, .pdf</span>
+    </div>
+    <div class="actions">
+      <button class="go" id="s-run">Run forensics</button>
+      <button class="ghost" id="s-clear">Clear</button>
+    </div>
+    <div class="result" id="s-result"></div>
+  </section>
+
+  <!-- ============ HUMANIZER ============ -->
+  <section class="panel" id="humanize">
+    <h2 class="lead">Humanizer</h2>
+    <p class="sub">Rewrites AI-flavored text into something that reads as written by a person. Handles long pieces by paragraph. Strips em-dashes, stray colons, asterisks, and hashes.</p>
+    <div class="field" data-drop="h-text">
+      <textarea id="h-text" placeholder="Paste up to ~8,000 words…"></textarea>
+    </div>
+    <div class="drop-hint">
+      <button class="filebtn" data-file="h-text">Upload file</button>
+      <span>or drag &amp; drop · .txt, .docx, .pdf</span>
+    </div>
+    <div class="countbar"><span id="h-count">0 words</span><span>limit ≈ 8,000 words</span></div>
+    <div class="controls">
+      <div>
+        <label>Tone</label>
+        <select class="line" id="h-tone">
+          <option value="natural and plain">Natural &amp; plain</option>
+          <option value="warm and conversational">Warm &amp; conversational</option>
+          <option value="academic but readable">Academic but readable</option>
+          <option value="confident and direct">Confident &amp; direct</option>
+        </select>
+      </div>
+      <div>
+        <label>Intensity</label>
+        <select class="line" id="h-intensity">
+          <option value="light">Light touch</option>
+          <option value="balanced" selected>Balanced</option>
+          <option value="aggressive">Aggressive rewrite</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin:6px 0 4px;">
+      <label style="font-family:'Hanken Grotesk',sans-serif;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-faint);">Goals</label>
+      <div class="chips" id="h-goals">
+        <div class="chip" data-value="vary sentence rhythm">Vary rhythm</div>
+        <div class="chip" data-value="use contractions">Contractions</div>
+        <div class="chip" data-value="trim hedges and filler">Trim filler</div>
+        <div class="chip" data-value="remove AI buzzwords">Kill buzzwords</div>
+        <div class="chip" data-value="APA 7th edition formatting">APA 7th</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="go" id="h-run">Humanize</button>
+      <button class="ghost" id="h-copy">Copy output</button>
+      <button class="ghost" id="h-clear">Clear</button>
+    </div>
+    <div class="result" id="h-result"></div>
+  </section>
+
+  <footer class="foot">Ghostless · Write Without Shadows · powered by Claude</footer>
+</div>
+
+<!-- client-side file parsers -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script>
+"use strict";
+
+/* ---------------- helpers ---------------- */
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+
+function escapeHtml(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+function setBusy(btn, busy, label) {
+  if (busy) {
+    btn.dataset.label = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>' + (label || "Working…");
+  } else {
+    btn.disabled = false;
+    if (btn.dataset.label) btn.innerHTML = btn.dataset.label;
+  }
+}
+
+function modelChoice() {
+  const v = $("#modelsel").value;
+  return v || undefined;
+}
+
+// Call the server proxy. Returns the full Anthropic response object.
+async function callClaudeRaw({ system, user, messages, max_tokens, tools, model }) {
+  const body = {
+    messages: messages || [{ role: "user", content: user }],
+    max_tokens: max_tokens || 1500,
+    model: model || modelChoice(),
+  };
+  if (system) body.system = system;
+  if (tools) body.tools = tools;
+
+  const res = await fetch("/api/claude", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Request failed (" + res.status + ").");
+  return data;
+}
+
+// Concatenate all text blocks from a response.
+function allText(data) {
+  return (data.content || [])
+    .filter((b) => b.type === "text")
+    .map((b) => b.text)
+    .join("\n")
+    .trim();
+}
+
+// Extract JSON object/array from a model response, tolerating fences/prose.
+function extractJSON(text) {
+  let t = String(text || "").replace(/```json|```/g, "").trim();
+  try { return JSON.parse(t); } catch (_) {}
+  const first = Math.min(
+    ...[t.indexOf("{"), t.indexOf("[")].filter((i) => i >= 0)
+  );
+  const lastObj = t.lastIndexOf("}");
+  const lastArr = t.lastIndexOf("]");
+  const last = Math.max(lastObj, lastArr);
+  if (isFinite(first) && last > first) {
+    return JSON.parse(t.slice(first, last + 1));
+  }
+  throw new Error("Could not parse a JSON response.");
+}
+
+/* ---------------- tabs ---------------- */
+$$("#tabs button").forEach((b) => {
+  b.addEventListener("click", () => {
+    $$("#tabs button").forEach((x) => x.classList.remove("active"));
+    $$(".panel").forEach((x) => x.classList.remove("active"));
+    b.classList.add("active");
+    $("#" + b.dataset.tab).classList.add("active");
+  });
+});
+
+/* ---------------- file upload (shared) ---------------- */
+async function readFile(file, targetId) {
+  const name = (file.name || "").toLowerCase();
+  const ta = $("#" + targetId);
+  ta.placeholder = "Reading " + file.name + "…";
+  try {
+    let text = "";
+    if (name.endsWith(".pdf")) {
+      const buf = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+      for (let p = 1; p <= pdf.numPages; p++) {
+        const page = await pdf.getPage(p);
+        const content = await page.getTextContent();
+        text += content.items.map((i) => i.str).join(" ") + "\n\n";
+      }
+    } else if (name.endsWith(".docx")) {
+      const buf = await file.arrayBuffer();
+      const out = await mammoth.extractRawText({ arrayBuffer: buf });
+      text = out.value;
+    } else {
+      text = await file.text();
+    }
+    ta.value = text.trim();
+    ta.dispatchEvent(new Event("input"));
+  } catch (e) {
+    ta.value = "";
+    ta.placeholder = "Could not read that file: " + e.message;
+  }
+}
+
+$$("[data-file]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".txt,.docx,.pdf,.md";
+    input.onchange = () => input.files[0] && readFile(input.files[0], btn.dataset.file);
+    input.click();
+  });
+});
+
+$$("[data-drop]").forEach((zone) => {
+  const id = zone.dataset.drop;
+  ["dragover", "dragenter"].forEach((ev) =>
+    zone.addEventListener(ev, (e) => { e.preventDefault(); zone.classList.add("dragging"); })
+  );
+  ["dragleave", "drop"].forEach((ev) =>
+    zone.addEventListener(ev, () => zone.classList.remove("dragging"))
+  );
+  zone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    const f = e.dataTransfer.files[0];
+    if (f) readFile(f, id);
+  });
+});
+
+/* ================= 1. AI DETECTION ================= */
+const AI_BUZZWORDS = [
+  "delve","tapestry","testament","navigating","realm","landscape","underscore",
+  "leverage","robust","seamless","holistic","intricate","multifaceted","myriad",
+  "pivotal","crucial","essential","vital","furthermore","moreover","additionally",
+  "in conclusion","it is important to note","it is worth noting","in today's world",
+  "in the realm of","plays a crucial role","plays a vital role","a wide range of",
+  "when it comes to","navigate the complexities","foster","cultivate","embark",
+  "elevate","unlock","harness","facilitate","comprehensive","nuanced","paradigm",
+  "synergy","streamline","game-changer","cutting-edge","ever-evolving","dynamic",
+  "transformative","unparalleled","meticulous","resonate","at the end of the day",
+];
+
+function splitSentences(text) {
+  const raw = text.replace(/\s+/g, " ").trim();
+  const parts = raw.match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g) || [];
+  return parts.map((s) => s.trim()).filter(Boolean);
+}
+
+function statisticalSignals(text) {
+  const sentences = splitSentences(text);
+  const words = text.toLowerCase().match(/[a-z']+/g) || [];
+  const lens = sentences.map((s) => (s.match(/[a-z']+/gi) || []).length).filter((n) => n > 0);
+
+  // burstiness: stddev of sentence length. Low stddev => uniform => AI-like.
+  const mean = lens.reduce((a, b) => a + b, 0) / (lens.length || 1);
+  const variance = lens.reduce((a, b) => a + (b - mean) ** 2, 0) / (lens.length || 1);
+  const sd = Math.sqrt(variance);
+  const burstScore = Math.max(0, Math.min(100, 100 - sd * 7)); // higher = more AI-like
+
+  // vocabulary diversity (type-token ratio). Lower => more repetitive => AI-leaning.
+  const uniq = new Set(words).size;
+  const ttr = uniq / (words.length || 1);
+  const ttrScore = Math.max(0, Math.min(100, (0.55 - ttr) * 220));
+
+  // buzzword density
+  const lower = " " + text.toLowerCase() + " ";
+  let hits = 0;
+  AI_BUZZWORDS.forEach((b) => { if (lower.includes(b)) hits++; });
+  const buzzScore = Math.min(100, hits * 12);
+
+  // punctuation footprint: em-dashes and semicolons per 1000 words
+  const emdashes = (text.match(/—/g) || []).length;
+  const semis = (text.match(/;/g) || []).length;
+  const punctScore = Math.min(100, ((emdashes + semis) / (words.length || 1)) * 4000);
+
+  const composite = Math.round(
+    burstScore * 0.32 + ttrScore * 0.22 + buzzScore * 0.28 + punctScore * 0.18
+  );
+
+  return {
+    sentences,
+    composite,
+    metrics: {
+      "Sentence uniformity": Math.round(burstScore),
+      "Lexical repetition": Math.round(ttrScore),
+      "AI buzzwords": hits,
+      "Em-dash / semicolon": emdashes + semis,
+    },
+  };
+}
+
+async function modelDetection(sentences) {
+  // Send numbered references in batches of 15 — never embed full text in JSON.
+  const scores = {};
+  let reasoning = "";
+  for (let i = 0; i < sentences.length; i += 15) {
+    const batch = sentences.slice(i, i + 15);
+    const numbered = batch.map((s, k) => (i + k + 1) + ". " + s).join("\n");
+    const system =
+      "You are a forensic AI-text detector. For each numbered sentence, judge how likely it was AI-generated, 0 (clearly human) to 100 (clearly AI). " +
+      "Return ONLY JSON, no prose, no markdown fences:\n" +
+      '{"scores":[{"i":<number>,"ai":<0-100>}],"note":"<one short observation>"}';
+    const data = await callClaudeRaw({
+      system,
+      user: numbered,
+      max_tokens: 1200,
+    });
+    const j = extractJSON(allText(data));
+    (j.scores || []).forEach((o) => { scores[o.i] = Math.max(0, Math.min(100, +o.ai || 0)); });
+    if (j.note && !reasoning) reasoning = j.note;
+  }
+  return { scores, reasoning };
+}
+
+function aiColor(p) {
+  // 0 = green (human), 100 = red (AI)
+  const hue = 155 + (p / 100) * 185; // mint(155) -> raspberry(340)
+  return `hsla(${hue}, 80%, 86%, 0.62)`;
+}
+
+$("#d-run").addEventListener("click", async () => {
+  const text = $("#d-text").value.trim();
+  const box = $("#d-result");
+  if (text.length < 40) { box.innerHTML = '<p class="err">Add at least a few sentences to analyze.</p>'; return; }
+  const btn = $("#d-run");
+  setBusy(btn, true, "Analyzing…");
+  box.innerHTML = '<div class="progress">Reading signals…</div>';
+  try {
+    const stat = statisticalSignals(text);
+    box.innerHTML = '<div class="progress">Asking Claude to read sentence by sentence…</div>';
+    const { scores, reasoning } = await modelDetection(stat.sentences);
+
+    const perSentence = stat.sentences.map((_, idx) =>
+      scores[idx + 1] != null ? scores[idx + 1] : stat.composite
+    );
+    const modelAvg = perSentence.reduce((a, b) => a + b, 0) / (perSentence.length || 1);
+    const aiPct = Math.round(stat.composite * 0.4 + modelAvg * 0.6);
+    const humanPct = 100 - aiPct;
+
+    const sentencesHtml = stat.sentences
+      .map((s, i) => `<span style="background:${aiColor(perSentence[i])}" title="${perSentence[i]}% AI">${escapeHtml(s)} </span>`)
+      .join("");
+
+    const sigHtml = Object.entries(stat.metrics)
+      .map(([k, v]) => `<div class="sig"><div class="n">${escapeHtml(k)}</div><div class="v">${v}</div></div>`)
+      .join("");
+
+    box.innerHTML = `
+      <div class="card">
+        <div class="verdict">
+          <div>
+            <div class="bigscore" style="color:${aiPct >= 50 ? "var(--danger)" : "var(--accent)"}">${aiPct}%</div>
+            <div class="scorelabel">Likely AI</div>
+          </div>
+          <div class="splitbar">
+            <div class="bar"><div class="ai" style="width:${aiPct}%"></div><div class="human" style="width:${humanPct}%"></div></div>
+            <div class="barkey"><span>${aiPct}% AI</span><span>${humanPct}% human</span></div>
+          </div>
+        </div>
+        ${reasoning ? `<div class="reasoning">${escapeHtml(reasoning)}</div>` : ""}
+        <div class="breakdown-title">Statistical signals</div>
+        <div class="signals">${sigHtml}</div>
+        <div class="breakdown-title">Sentence by sentence</div>
+        <div class="sentences">${sentencesHtml}</div>
+      </div>`;
+  } catch (e) {
+    box.innerHTML = `<p class="err">${escapeHtml(e.message)}</p>`;
+  } finally {
+    setBusy(btn, false);
+  }
+});
+$("#d-clear").addEventListener("click", () => { $("#d-text").value = ""; $("#d-result").innerHTML = ""; });
+
+/* ================= 2. ORIGINALITY ================= */
+$("#o-run").addEventListener("click", async () => {
+  const text = $("#o-text").value.trim();
+  const box = $("#o-result");
+  if (text.length < 40) { box.innerHTML = '<p class="err">Paste a passage to check.</p>'; return; }
+  const btn = $("#o-run");
+  setBusy(btn, true, "Searching…");
+  box.innerHTML = '<div class="progress">Searching the web for matching sources…</div>';
+  try {
+    const system =
+      "You are an originality checker. Use web search to look for published sources that match or closely paraphrase the user's text. " +
+      "After searching, respond with ONLY JSON, no fences:\n" +
+      '{"originality":<0-100 percent original>,"summary":"<2 sentence verdict>","matches":[{"passage":"<short quote from the user text>","source":"<title>","url":"<url>","note":"<exact match or paraphrase>"}]}';
+    const data = await callClaudeRaw({
+      system,
+      user: text,
+      max_tokens: 2000,
+      tools: [{ type: "web_search_20250305", name: "web_search" }],
+    });
+    const j = extractJSON(allText(data));
+    const orig = Math.max(0, Math.min(100, +j.originality || 0));
+    const matches = j.matches || [];
+    const matchHtml = matches.length
+      ? matches.map((m) => `
+          <div class="src">
+            <div class="t">${escapeHtml(m.source || "Source")}<span class="pill flag">${escapeHtml(m.note || "match")}</span></div>
+            ${m.passage ? `<div class="meta">“${escapeHtml(m.passage)}”</div>` : ""}
+            ${m.url ? `<a href="${escapeHtml(m.url)}" target="_blank" rel="noopener">${escapeHtml(m.url)}</a>` : ""}
+          </div>`).join("")
+      : '<p class="empty">No matching sources surfaced. The passage appears original.</p>';
+
+    box.innerHTML = `
+      <div class="card">
+        <div class="verdict">
+          <div>
+            <div class="bigscore" style="color:${orig >= 70 ? "var(--accent)" : "var(--danger)"}">${orig}%</div>
+            <div class="scorelabel">Original</div>
+          </div>
+          <div class="splitbar"><div class="reasoning" style="border:none;padding:0;margin:0">${escapeHtml(j.summary || "")}</div></div>
+        </div>
+        <div class="breakdown-title">Potential sources</div>
+        ${matchHtml}
+      </div>`;
+  } catch (e) {
+    box.innerHTML = `<p class="err">${escapeHtml(e.message)}</p>`;
+  } finally {
+    setBusy(btn, false);
+  }
+});
+$("#o-clear").addEventListener("click", () => { $("#o-text").value = ""; $("#o-result").innerHTML = ""; });
+
+/* ================= 3. CITATIONS ================= */
+$("#c-run").addEventListener("click", async () => {
+  const q = $("#c-query").value.trim();
+  const box = $("#c-result");
+  if (q.length < 3) { box.innerHTML = '<p class="err">Enter a topic, title, or DOI.</p>'; return; }
+  const count = $("#c-count").value;
+  const recency = $("#c-recency").value;
+  const btn = $("#c-run");
+  setBusy(btn, true, "Searching…");
+  box.innerHTML = '<div class="progress">Finding peer-reviewed sources, then verifying each one…</div>';
+  try {
+    const recencyText = recency === "any" ? "any year" : "the last " + recency + " years";
+    const system =
+      "You are an academic reference librarian. Use web search to find REAL, peer-reviewed journal articles relevant to the query, preferring " + recencyText + ". " +
+      "Only include articles you can verify exist in a peer-reviewed academic journal (not blogs, news, preprints, or books). Verify before formatting. " +
+      "Return ONLY JSON, no fences:\n" +
+      '{"citations":[{"apa":"<full APA 7th edition reference>","journal":"<journal name>","year":"<year>","doi":"<doi or url>","verified":<true|false>}]}';
+    const data = await callClaudeRaw({
+      system,
+      user: "Find " + count + " peer-reviewed sources for: " + q,
+      max_tokens: 2500,
+      tools: [{ type: "web_search_20250305", name: "web_search" }],
+    });
+    const j = extractJSON(allText(data));
+    const cites = (j.citations || []).filter((c) => c.apa);
+    if (!cites.length) { box.innerHTML = '<p class="empty">No verifiable peer-reviewed sources found. Try a broader topic.</p>'; return; }
+    box.innerHTML = `<div class="card">
+      <div class="breakdown-title">${cites.length} peer-reviewed source${cites.length > 1 ? "s" : ""} — APA 7th</div>
+      ${cites.map((c) => `
+        <div class="cite">
+          <button class="copy" data-apa="${escapeHtml(c.apa)}">Copy</button>
+          <div class="apa">${escapeHtml(c.apa)}</div>
+          ${c.verified === false ? '<span class="pill flag">unverified</span>' : '<span class="pill ok">verified</span>'}
+        </div>`).join("")}
+    </div>`;
+    box.querySelectorAll(".copy").forEach((b) =>
+      b.addEventListener("click", () => {
+        navigator.clipboard.writeText(b.dataset.apa);
+        b.textContent = "Copied"; setTimeout(() => (b.textContent = "Copy"), 1400);
+      })
+    );
+  } catch (e) {
+    box.innerHTML = `<p class="err">${escapeHtml(e.message)}</p>`;
+  } finally {
+    setBusy(btn, false);
+  }
+});
+
+/* ================= 4. STYLE FORENSICS ================= */
+$("#s-run").addEventListener("click", async () => {
+  const text = $("#s-text").value.trim();
+  const box = $("#s-result");
+  if (text.length < 60) { box.innerHTML = '<p class="err">Add more text — forensics needs a few paragraphs.</p>'; return; }
+  const btn = $("#s-run");
+  setBusy(btn, true, "Reading…");
+  box.innerHTML = '<div class="progress">Examining edit-trail residue, register, and rhythm…</div>';
+  try {
+    const system =
+      "You are a writing forensics analyst. Examine the text for signs it was organically written versus pasted or assembled from sources. " +
+      "Check: edit-trail residue (leftover markdown, mismatched quotes, stray formatting), register stability (consistent voice/formality), " +
+      "paragraph rhythm, contraction use, sentence fragments, and abrupt voice breaks. " +
+      "Return ONLY JSON, no fences:\n" +
+      '{"verdict":"<organically written | likely assembled | mixed>","confidence":<0-100>,"summary":"<2-3 sentences>","signals":[{"name":"<signal>","finding":"<what you saw>","flag":<true|false>}]}';
+    const data = await callClaudeRaw({ system, user: text, max_tokens: 1800 });
+    const j = extractJSON(allText(data));
+    const conf = Math.max(0, Math.min(100, +j.confidence || 0));
+    const flaggedColor = /assembl|mixed/i.test(j.verdict || "") ? "var(--warn)" : "var(--accent)";
+    const sigHtml = (j.signals || []).map((s) => `
+      <div class="src">
+        <div class="t" style="font-size:15px">${escapeHtml(s.name)}${s.flag ? '<span class="pill flag">flag</span>' : '<span class="pill ok">clean</span>'}</div>
+        <div class="meta">${escapeHtml(s.finding || "")}</div>
+      </div>`).join("");
+    box.innerHTML = `
+      <div class="card">
+        <div class="verdict">
+          <div>
+            <div class="bigscore" style="font-size:34px;color:${flaggedColor}">${escapeHtml(j.verdict || "—")}</div>
+            <div class="scorelabel">${conf}% confidence</div>
+          </div>
+        </div>
+        <div class="reasoning">${escapeHtml(j.summary || "")}</div>
+        <div class="breakdown-title">Forensic signals</div>
+        ${sigHtml || '<p class="empty">No signals returned.</p>'}
+      </div>`;
+  } catch (e) {
+    box.innerHTML = `<p class="err">${escapeHtml(e.message)}</p>`;
+  } finally {
+    setBusy(btn, false);
+  }
+});
+$("#s-clear").addEventListener("click", () => { $("#s-text").value = ""; $("#s-result").innerHTML = ""; });
+
+/* ================= 5. HUMANIZER ================= */
+// goal chips — div-based with data-value (avoids label/checkbox double-fire)
+$$("#h-goals .chip").forEach((chip) =>
+  chip.addEventListener("click", () => chip.classList.toggle("on"))
+);
+
+function wordCount(s) { return (s.trim().match(/\S+/g) || []).length; }
+$("#h-text").addEventListener("input", () => {
+  $("#h-count").textContent = wordCount($("#h-text").value) + " words";
+});
+
+// strip common AI formatting residue
+function stripArtifacts(s) {
+  return s
+    .replace(/\s*—\s*/g, ", ")   // em-dash -> comma
+    .replace(/\s*–\s*/g, ", ")   // en-dash -> comma
+    .replace(/[*#`]+/g, "")       // markdown asterisks/hashes/backticks
+    .replace(/^\s*:\s*/gm, "")    // stray leading colons
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+// chunk by paragraph boundaries, keeping each chunk under ~900 words
+function chunkByParagraph(text, maxWords) {
+  const paras = text.split(/\n\s*\n/);
+  const chunks = [];
+  let cur = "", curWords = 0;
+  for (const p of paras) {
+    const w = wordCount(p);
+    if (curWords + w > maxWords && cur) { chunks.push(cur.trim()); cur = ""; curWords = 0; }
+    cur += (cur ? "\n\n" : "") + p;
+    curWords += w;
+  }
+  if (cur.trim()) chunks.push(cur.trim());
+  return chunks;
+}
+
+$("#h-run").addEventListener("click", async () => {
+  const text = $("#h-text").value.trim();
+  const box = $("#h-result");
+  if (text.length < 40) { box.innerHTML = '<p class="err">Paste text to humanize.</p>'; return; }
+  if (wordCount(text) > 8000) { box.innerHTML = '<p class="err">That is over 8,000 words. Trim it down and try again.</p>'; return; }
+
+  const tone = $("#h-tone").value;
+  const intensity = $("#h-intensity").value;
+  const goals = $$("#h-goals .chip.on").map((c) => c.dataset.value);
+  const btn = $("#h-run");
+  setBusy(btn, true, "Rewriting…");
+
+  const chunks = chunkByParagraph(text, 900);
+  let outParts = [];
+  let allDiffs = [];
+  box.innerHTML = '<div class="progress">Rewriting…</div>';
+
+  try {
+    for (let i = 0; i < chunks.length; i++) {
+      box.querySelector(".progress").textContent =
+        "Rewriting section " + (i + 1) + " of " + chunks.length + "…";
+      const system =
+        "You rewrite AI-generated text so it reads as if written by a thoughtful human. " +
+        "Tone: " + tone + ". Intensity: " + intensity + ". " +
+        "Goals: " + (goals.join(", ") || "natural human voice") + ". " +
+        "Rules: preserve meaning and facts exactly; never invent details; vary sentence length; " +
+        "trim hedges and filler; do NOT use em-dashes, en-dashes, or markdown symbols. " +
+        "Return ONLY JSON, no fences:\n" +
+        '{"rewrite":"<the rewritten prose>","changes":[{"before":"<short>","after":"<short>","why":"<one line>"}]}';
+      const data = await callClaudeRaw({
+        system,
+        user: chunks[i],
+        max_tokens: Math.min(4096, Math.max(900, chunks[i].length * 2)),
+      });
+      const j = extractJSON(allText(data));
+      outParts.push(stripArtifacts(j.rewrite || ""));
+      (j.changes || []).slice(0, 4).forEach((c) => allDiffs.push(c));
+    }
+
+    const finalText = outParts.join("\n\n");
+    $("#h-result").dataset.output = finalText;
+    const diffHtml = allDiffs.slice(0, 12).map((d) => `
+      <div class="diff">
+        <div class="before">${escapeHtml(d.before || "")}</div>
+        <div class="after">${escapeHtml(d.after || "")}</div>
+        <div class="why">${escapeHtml(d.why || "")}</div>
+      </div>`).join("");
+
+    box.innerHTML = `
+      <div class="hum-out">${escapeHtml(finalText)}</div>
+      ${diffHtml ? `<div class="breakdown-title">What changed</div>${diffHtml}` : ""}`;
+  } catch (e) {
+    box.innerHTML = `<p class="err">${escapeHtml(e.message)}</p>`;
+  } finally {
+    setBusy(btn, false);
+  }
+});
+$("#h-copy").addEventListener("click", () => {
+  const out = $("#h-result").dataset.output || "";
+  if (out) { navigator.clipboard.writeText(out); const b = $("#h-copy"); b.textContent = "Copied"; setTimeout(() => (b.textContent = "Copy output"), 1400); }
+});
+$("#h-clear").addEventListener("click", () => { $("#h-text").value = ""; $("#h-result").innerHTML = ""; $("#h-result").dataset.output = ""; $("#h-count").textContent = "0 words"; });
+</script>
+</body>
+</html>
