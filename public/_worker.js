@@ -1,7 +1,5 @@
-// Ghostless — Cloudflare Workers entry point
-// This thin adapter wraps the Anthropic proxy logic for the Workers runtime.
-// Static assets are served from the /public folder via Cloudflare Pages Assets
-// (configure via wrangler.toml [site] block when deploying as Pages + Worker).
+// Ghostless — Cloudflare Pages _worker.js (Advanced Mode)
+// Handles API routes; all other requests fall through to static assets.
 
 export default {
   async fetch(request, env) {
@@ -17,7 +15,7 @@ export default {
       const API_KEY = env.ANTHROPIC_API_KEY;
       if (!API_KEY) {
         return Response.json(
-          { error: "Server is missing ANTHROPIC_API_KEY. Set it as a Worker secret." },
+          { error: "Server is missing ANTHROPIC_API_KEY." },
           { status: 500 }
         );
       }
@@ -29,8 +27,6 @@ export default {
         "claude-haiku-4-5-20251001",
       ]);
       const DEFAULT_MODEL = env.GHOSTLESS_MODEL || "claude-sonnet-4-6";
-      const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-      const ANTHROPIC_VERSION = "2023-06-01";
 
       let body;
       try {
@@ -42,14 +38,10 @@ export default {
       const { system, messages, max_tokens, model, tools } = body || {};
 
       if (!Array.isArray(messages) || messages.length === 0) {
-        return Response.json(
-          { error: "Request must include a non-empty messages array." },
-          { status: 400 }
-        );
+        return Response.json({ error: "messages array required." }, { status: 400 });
       }
 
       const chosenModel = model && ALLOWED_MODELS.has(model) ? model : DEFAULT_MODEL;
-
       const payload = {
         model: chosenModel,
         max_tokens: Math.min(Math.max(parseInt(max_tokens, 10) || 1024, 256), 8192),
@@ -61,14 +53,11 @@ export default {
       const headers = {
         "content-type": "application/json",
         "x-api-key": API_KEY,
-        "anthropic-version": ANTHROPIC_VERSION,
+        "anthropic-version": "2023-06-01",
       };
-      if (Array.isArray(tools) && tools.some((t) => /web_search/.test(t.type || ""))) {
-        headers["anthropic-beta"] = "web-search-2025-03-05";
-      }
 
       try {
-        const upstream = await fetch(ANTHROPIC_URL, {
+        const upstream = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
           headers,
           body: JSON.stringify(payload),
@@ -76,7 +65,7 @@ export default {
         const data = await upstream.json();
         if (!upstream.ok) {
           return Response.json(
-            { error: (data?.error?.message) || "Anthropic API error." },
+            { error: data?.error?.message || "Anthropic API error." },
             { status: upstream.status }
           );
         }
@@ -86,9 +75,7 @@ export default {
       }
     }
 
-    // ---- Static assets (Pages Assets) ----------------------------------------
-    // When deployed with `wrangler pages deploy` this is handled automatically.
-    // For a pure Worker deploy, serve index.html as fallback.
-    return new Response("Not found", { status: 404 });
+    // ---- Static assets — served by Pages asset binding ----------------------
+    return env.ASSETS.fetch(request);
   },
 };
