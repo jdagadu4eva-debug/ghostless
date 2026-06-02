@@ -390,16 +390,24 @@ function allText(data) {
 
 // Extract JSON object/array from a model response, tolerating fences/prose.
 function extractJSON(text) {
-  let t = String(text || "").replace(/```json|```/g, "").trim();
+  // Strip all markdown code fences (with or without language tag, with or without newlines)
+  let t = String(text || "")
+    .replace(/```[a-z]*\n?/gi, "")
+    .replace(/```/g, "")
+    .trim();
+  // Direct parse first
   try { return JSON.parse(t); } catch (_) {}
-  const first = Math.min(
-    ...[t.indexOf("{"), t.indexOf("[")].filter((i) => i >= 0)
-  );
+  // Find the outermost JSON object or array, ignoring prose before/after
+  const firstObj = t.indexOf("{");
+  const firstArr = t.indexOf("[");
+  const candidates = [firstObj, firstArr].filter((i) => i >= 0);
+  if (!candidates.length) throw new Error("Could not parse a JSON response.");
+  const first = Math.min(...candidates);
   const lastObj = t.lastIndexOf("}");
   const lastArr = t.lastIndexOf("]");
   const last = Math.max(lastObj, lastArr);
-  if (isFinite(first) && last > first) {
-    return JSON.parse(t.slice(first, last + 1));
+  if (last > first) {
+    try { return JSON.parse(t.slice(first, last + 1)); } catch (_) {}
   }
   throw new Error("Could not parse a JSON response.");
 }
